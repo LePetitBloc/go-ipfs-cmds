@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime"
@@ -211,10 +212,10 @@ func parseResponse(httpRes *http.Response, req *cmds.Request) (cmds.Response, er
 			e.Message = string(mes)
 			e.Code = cmdkit.ErrNormal
 		default:
-			// handle marshalled errors
-			err := res.dec.Decode(&e)
-			if err != nil {
-				return nil, err
+			// handle errors from headers
+			errStr := httpRes.Header.Get(StreamErrHeader)
+			if errStr != "" {
+				return nil, errors.New(errStr)
 			}
 		}
 
